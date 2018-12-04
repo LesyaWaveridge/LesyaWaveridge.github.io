@@ -1,1 +1,340 @@
-<h1>Hello</h1>
+<!DOCTYPE html>
+<head>
+<script src="CryptoJS/rollups/aes.js"></script>
+<script src="CryptoJS/rollups/tripledes.js"></script>
+<script src="CryptoJS/rollups/rabbit.js"></script>
+<script src="CryptoJS/rollups/rc4.js"></script>
+<script src="GOST.js"></script>
+<script src="blowfish.js"></script>
+<script type="text/javascript">
+function sort(b)
+{
+  var a=[],i,j,l,t;
+  l=b.length;
+  for(i=0;i<l;i++) a[i]=b[i];
+  for(i=0;i<l-1;i++)
+   for(j=i+1;j<l;j++)
+    if(a[i]>a[j]){t=a[i];a[i]=a[j];a[j]=t;}
+  return a;	
+}
+function code()
+{
+  var a=document.getElementById("sel").value,
+      b=parseInt(document.getElementById("rep").value),
+      c=document.getElementById("s1"),
+      d=document.getElementById("s2"),
+      e=document.getElementById("s3"),
+      f=document.getElementById("s4"),
+      g=document.getElementById("ta1").value,
+      h=document.getElementById("ta2"),
+      k=document.getElementById("ta3").value,
+	  l=document.getElementById("d3"),
+	  cnv = document.getElementById("cnv"),
+      puc = cnv.getContext('2d');
+  
+ var  H=200,W=200,start=100,finish=1000,step=100; 
+ var i,j,t1,t2,t=[];
+  
+  
+  
+ for(j=start;j<=finish;j+=step)
+{ 
+  t1=Date.now(); 
+  for(i=0;i<j;i++)
+  {
+    switch(a)
+    {
+      case "1": h.value=blck(g,k); break;
+      case "2": h.value=sqre(g,k); break;
+      case "3": h.value=viz1(g,k); break;
+      case "4": h.value=viz2(g,k); break;
+      case "5": h.value=kard(g,k); break;
+      case "6": h.value=gron(g,k); break;
+      case "7": h.value=plfr(g,k); break;
+      case "8": h.value = CryptoJS.AES.encrypt(g,k); break;
+      case "9": h.value = CryptoJS.DES.encrypt(g,k); break;
+      case "10": h.value = CryptoJS.TripleDES.encrypt(g,k); break;
+      case "11": h.value = CryptoJS.RC4.encrypt(g,k); break;
+      case "12": h.value = CryptoJS.Rabbit.encrypt(g,k); break;
+      case "13": var gost = new ClassGost();h.value = gost.Encode(g, k); break;
+      case "14": var bf = new Blowfish(k); h.value = bf.encrypt(g); break;
+      default:i=b;j=100000;alert("Оберіть алгоритм шифрування");
+    }
+    t2=Date.now();
+    c.value=document.getElementById("ta1").value.length;
+    d.value=document.getElementById("ta3").value.length;
+    e.value=document.getElementById("ta2").value.length;
+    f.value=t2-t1;
+	t[j/step-1]=t2-t1;
+  }
+ }
+ var x,y;
+ cnv.height = H;
+ cnv.width = W;
+ puc.beginPath();
+ /*puc.moveTo(0,0);
+ puc.lineTo(0,H-1);
+ puc.lineTo(W-1,H-1);
+ puc.lineTo(W-1,0);
+ puc.lineTo(0,0);*/
+ puc.moveTo(0,H);
+ l.innerHTML="<pre style='margin:0 2px;'>циклів&#9;час</pre>";
+ for(i=0;i<finish/step;i++)
+ {
+	l.innerHTML+="<pre style='margin:0 2px;'>&nbsp;"+(i+1)*step+"&#9;"+t[i]+"</pre>";
+	x = (i+1)*step*W/finish;
+	y = H-(H*t[i]/t[finish/step-1]);
+	//alert("("+x+","+y+")");
+	puc.lineTo(x,y);
+ }
+ puc.stroke();
+}
+function blck(t,p)
+{
+  var b,c,g="",h,i,l;
+  l=p.length;
+  b=sort(p);
+  c=1;
+  for(i=0;i<l&&c;i++) if(b[i]!=i) c=0;
+  if(c==0){alert("Невірний пароль");return "";}
+  b=t;
+  h=l-b.length % l;
+  if(h!=l) for(i=0;i<h;i++) b+="*";
+  for(i=0;i<b.length;i++)
+   { e=l*(Math.floor(i/l))+parseInt(p[i%l]);
+     g+=b[e];
+   }
+  return g;
+}
+function sqre(t,p)
+{
+  var b,e=[],f,g="",h,i,j,k,l,m;
+  l=p.length;
+  if(l==1)
+  {
+   l=parseInt(p);
+   b=t;
+   h=l*l-b.length % (l*l);
+   if(h!=l*l) for(i=0;i<h;i++) b+="*";
+   for(k=0;k<b.length;k+=l*l)
+    for(i=0;i<l;i++)
+     for(j=0;j<l;j++) 
+     {
+	e=k+j*l+i;
+	g+=b[e];
+     }
+  }else
+  {
+   b=sort(p);
+   m=1;
+   for(i=0;i<l&&m;i++) if(b[i]!=i) m=0;;
+   if(m==0){alert("Невірний склад паролю");return "";}
+   b=t;
+   h=l*l-b.length % (l*l);
+   if(h!=l*l) for(i=0;i<h;i++) b+="*";
+   for(k=0;k<b.length;k+=l*l)
+    for(i=0;i<l;i++)
+     for(j=0;j<l;j++) 
+     {
+	e=k+j*l+parseInt(p[i]);
+	g+=b[e];
+     }
+  }
+  return g;
+}
+function indof(a,b)
+{
+  var i;
+  for(i=0;i<b.length;i++) if(b[i]==a) return i;
+  return -1;
+}
+function viz1(t,p)
+{
+  var alf="абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
+  var a,b,c,d,e,i;
+  a=p.length;
+  b=alf.length;
+  e="";
+  for(i=0;i<t.length;i++)
+  {
+    c=indof(t[i],alf);
+    d=indof(p[i%a],alf);
+    if(c>=0&&d>=0) e+=alf[(c+d)%b];
+     else e+=t[i];    
+  }
+  return e;
+}
+function viz2(t,p)
+{
+var alf="абвгґдеєжзиіїйклмнопрстуфхцчшщьюяАБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ .,;:!?()_123456790";
+  var a,b,c,d,e,i;
+  a=p.length;
+  b=alf.length;
+  e="";
+  for(i=0;i<t.length;i++)
+  {
+    c=indof(t[i],alf);
+    d=indof(p[i%a],alf);
+    if(c>=0&&d>=0) e+=alf[(c+d)%b];
+     else e+=t[i];    
+  }
+  return e;
+}
+function kard(t,p)
+{
+  var a,b,c,i,alf="абвгґдеєжзиіїйклмнопрстуфхцчшщьюяАБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ .,;:!?()_123456790",g="";
+  a=p.length;
+  b=1;
+  for(i=1;i<a&&b;i++) if(p[i]!="1"&&p[i]!="0") b=0;
+  if(b==0){alert("Невірний пароль");return "";}
+  i=0;c=0; 
+  while(i<t.length)
+  {
+    if(p[c]=="1") {g+=t[i];i++;}
+    else {b=Math.floor(Math.random()*alf.length);g+=alf[b];}
+    c++;if(c==a) c-=a;
+  }
+  return g;
+}
+function gron(t,p)
+{
+  var a,b,c,i,alf="абвгґдеєжзиіїйклмнопрстуфхцчшщьюяАБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ .,;:!?()_123456790";
+  a=p.length;c="";
+  for(i=0;i<t.length;i++)
+  {
+    b=indof(t[i],alf);
+    if(b>=0){b=(b+parseInt(p[i%a]))%alf.length;c+=alf[b];}
+    else c+=t[i];
+  }
+  return c;
+}
+function plfr(t,p)
+{
+  var alf="абвгґдеєжзиіїйклмнопрстуфхцчшщьюя .*",a,b,c,c1,c2,d,e,i,j1,j2,k1,k2,x;
+  c=[];
+  for(i=0;i<alf.length;i++) c[i]=1;
+  i=0;b="";d="";
+  for(i=0;i<p.length;i++)
+  {
+    a=indof(p[i],alf);
+    if(a>=0&&c[a]){b+=alf[a];d+=alf[a];c[a]=0;}
+  }
+a=b.length;
+  for(i=0;i<alf.length;i++)
+  {
+    if(c[i]) {b+=alf[i];d+=alf[i];a++;if(a % 6==0) {b+="\n";}}
+  }
+  e="";
+  for(i=0;i<t.length-1;i+=2)
+  {
+    a=indof(t[i],d);
+    x=indof(t[i+1],d);
+    if(a>=0&&x>=0)
+    {
+      if(a==x) x=alf.length-1;
+      k1=a%6;j1=Math.floor(a/6);
+      k2=x%6;j2=Math.floor(x/6);
+      if(j1==j2){c1=d[j1*6+(k1+1)%6];c2=d[j1*6+(k2+1)%6];}
+      else if(k1==k2){c1=d[((j1+1)%6)*6+k1];c2=d[((j2+1)%6)*6+k1];}
+           else{c2=d[j2*6+k1];c1=d[j1*6+k2];} 
+/*alert(t[i]+" "+a+"("+j1+","+k1+") "+c1+"\n"+t[i+1]+" "+x+"("+j2+","+k2+") "+c2);*/
+    }
+    else{c1=t[i];c2=t[i+1];}
+    e+=c1;e+=c2;
+  }
+  return e;
+}
+function r_clk(n)
+{
+   var a=document.getElementById("d1"),
+       b="",
+       c=document.getElementById("sel"),
+       d=document.getElementById("ta3"),
+       e=document.getElementById("d2");
+   c.value=n;
+   switch(n)
+   {
+	case 1: b="<b>Блочна транспозиція</b>";
+		d.value="3210";	
+		e.innerHTML="Перестановка чисел від 0 до N";break;
+	case 2: b="<b>Транспозиція квадратом</b>";
+		d.value="201";
+		e.innerHTML="Одна цифра - розмір квадрату, інакше - порядок перемішування стовпчиків (Перестановка чисел від 0 до N)";break;
+	case 3: b="<b>Шифр Віженера зі скороченою українською абеткою</b>";
+		d.value="пароль";
+		e.innerHTML="Довільна послідовність маленьких літер української абетки";break;
+	case 4: b="<b>Шифр Віженера з повною українською абеткою</b>";
+		d.value="ПаролЬ_123";
+		e.innerHTML="Довільна послідовність літер української абетки (маленьких та великих), цифр та знаків пунктуації";break;
+	case 5: b="<b>Гратка Кардано</b>";
+		d.value="01010";
+		e.innerHTML="послідовність 1 та 0";break;
+	case 6: b="<b>Шифр Гронсфельда</b>";
+		d.value="1324";
+		e.innerHTML="послідовність цифр";break;
+	case 7: b="<b>Шифр PlayFair</b>";
+		d.value="барабан";
+		e.innerHTML="послідовність маленьких літер української абетки";break;
+	case 8: b="<b>AES</b>";
+		d.value="J8fcfwapD7EK0m_z";
+		e.innerHTML="128/192/256 біт";break;
+	case 9: b="<b>DES</b>";
+		d.value="p7EK0m_";
+		e.innerHTML="56 бiт";break;
+	case 10: b="<b>Triple DES</b>";
+		d.value="1о:у-J8fcfwapD7EK0m_z";
+		e.innerHTML="168 біт";break;
+	case 11: b="<b>RC4</b>";
+		d.value="U1m8n";
+		e.innerHTML="40–2048 біт";break;
+	case 12: b="<b>Rabbit</b>";
+		d.value="J8fcfwapD7EK0m_z";
+		e.innerHTML="128 біт";break;
+	case 13: b="<b>ГОСТ 28147-89</b>";
+		d.value="J8fcfwapD7EK0m_zJ8fcfwapD7EK0m_z";
+		e.innerHTML="256 біт";break;
+	case 14: b="<b>Blowfish</b>";
+		d.value="J8fcfwap";
+		e.innerHTML="64 біт";break;
+	default: b="Алгоритм шифрування не обрано";
+   }
+   a.innerHTML=b;
+}
+</script>
+</head>
+
+<body>
+<h2>Визначення обчислювальної складності криптоперетворень</h2>
+<canvas id="cnv"style="border:1px solid green;float:right;height:200px;width:200px;">Помилка відображення</canvas>
+<div id="d3" style="border:1px solid red;float:right;height:200px;width:200px;clear:right;"></div>
+<form>
+<table width="500px">
+<tr><td>
+<input type="button" id="r1" value="V" onclick="r_clk(1);"/> Блочна транспозиція<br/>
+<input type="button" id="r2" value="V" onclick="r_clk(2);"/> Транспозиція квадратом<br/>
+<input type="button" id="r3" value="V" onclick="r_clk(3);"/> Шифр Віженера (скорочена укр. абетка)<br/>
+<input type="button" id="r4" value="V" onclick="r_clk(4);"/> Шифр Віженера (повна укр. абетка)<br/>
+<input type="button" id="r5" value="V" onclick="r_clk(5);"/> Гратка Кардано<br/>
+<input type="button" id="r6" value="V" onclick="r_clk(6);"/> Шифр Гронсфельда<br/>
+<input type="button" id="r7" value="V" onclick="r_clk(7);"/> Шифр PlayFair (6x6)<br/>
+</td>
+<td>
+<input type="button" id="r8" value="V" onclick="r_clk(8);"/> AES<br/>
+<input type="button" id="r9" value="V" onclick="r_clk(9);"/> DES<br/>
+<input type="button" id="r10" value="V" onclick="r_clk(10);"/> Triple DES<br/>
+<input type="button" id="r11" value="V" onclick="r_clk(11);"/> RC4<br/>
+<input type="button" id="r12" value="V" onclick="r_clk(12);"/> Rabbit<br/>
+<input type="button" id="r13" value="V" onclick="r_clk(13);"/> ГОСТ 28147-89<br/>
+<input type="button" id="r14" value="V" onclick="r_clk(14);"/> Blowfish<br/>
+</td></tr></table>
+Обрано: <span id="d1"  style="font-style:italic;width:150px;">Алгоритм шифрування не обрано</span><br/>
+<textarea id="ta1" cols="30" rows="10">Випробувальний текст українською мовою з цифрами (123), літерами різного РЕЄСТРУ; знаками пунктуації! А також - окремими латинськими літерами: AaBbZ?</textarea>
+<input type="button" onclick="code();" value="->"/>
+<textarea id="ta2" cols="30" rows="10"></textarea><br/>
+Пароль: <input type="text"  id="ta3" value="" /> 
+Повторень: <input type="text"  id="rep" value="100-1000" /><br/>Обмеження на пароль: <span id="d2"  style="font-style:italic;width:150px;">Алгоритм шифрування не обрано</span><br/>
+Статистика:<br/> довжина тексту <input type="text"  id="s1" value="" style="width:40px;" /> симв.<br/>  довжина паролю <input type="text"  id="s2" value="" style="width:40px;" />симв. <br/> довжина шифротексту <input type="text"  id="s3" value="" style="width:40px;" />симв.<br/>тривалість перетворення <input type="text"  id="s4" value="" style="width:40px;" /> мс
+<input type="hidden" id="sel" value="0"/>
+
+</form>
+</body>
